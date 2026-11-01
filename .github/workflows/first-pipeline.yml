@@ -1,0 +1,29 @@
+
+name: My First GitHub Actions Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  first-job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Display welcome message
+        run: echo "Welcome to GitHub Actions!"
+
+      - name: Display current date
+        run: date
+
+      - name: Display runner information
+        run: |
+          echo "Operating System:"
+          uname -a
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: List repository files
+        run: ls -la
