@@ -56,7 +56,7 @@
 #         run: terraform apply -auto-approve tfplan
 
 
-name: Terraform Deploy
+name: Terraform 1st Resource Deploy
 
 on:
   # push:
