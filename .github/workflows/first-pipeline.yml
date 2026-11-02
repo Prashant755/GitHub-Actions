@@ -117,7 +117,7 @@ jobs:
 
     needs: plan
 
-    # Manual approval
+    # Manual approval through GitHub Environment
     environment: production
 
     env:
@@ -147,10 +147,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: tfplan
-          path: tfplan
+          path: .
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
+
 
 
 
