@@ -88,6 +88,12 @@ jobs:
           role-to-assume: arn:aws:iam::085013191936:role/OIDC-role
           aws-region: us-east-1
           role-session-name: GitHubActionsPlanSession
+      - name: Print OIDC sub claim
+        run: |
+          TOKEN=$(curl -sH "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+          "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | jq -r .value)
+          echo "$TOKEN" | cut -d. -f2 | tr '_-' '/+' \
+          | awk '{while(length($0)%4) $0=$0"="; print}' | base64 -d | jq -r .sub   
 
       - name: Debug AWS env
         run: env | grep -E '^AWS_' | sed 's/=.*//'
