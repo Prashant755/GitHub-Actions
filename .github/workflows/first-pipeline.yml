@@ -89,6 +89,9 @@ jobs:
           aws-region: us-east-1
           role-session-name: GitHubActionsPlanSession
 
+      - name: Debug AWS env
+        run: env | grep -E '^AWS_' | sed 's/=.*//'
+
       - name: Verify AWS Authentication
         run: aws sts get-caller-identity
 
@@ -100,6 +103,8 @@ jobs:
 
       - name: Terraform Plan
         run: terraform plan -out=tfplan
+        env:
+          TF_LOG: DEBUG
 
       - name: Upload Plan Artifact
         uses: actions/upload-artifact@v4
@@ -148,6 +153,6 @@ jobs:
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
 
-# 
+
 
 
