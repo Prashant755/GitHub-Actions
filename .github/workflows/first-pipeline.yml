@@ -56,16 +56,20 @@
 #         run: terraform apply -auto-approve tfplan
 
 
+
 name: Terraform 1st Resource Deploy
 
 on:
   workflow_dispatch:
 
+# GitHub OIDC permissions
 permissions:
   id-token: write
   contents: read
 
 jobs:
+
+  # JOB 1: TERRAFORM PLAN
   plan:
     name: Terraform Plan
     runs-on: ubuntu-latest
@@ -79,24 +83,13 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: "1.16.5"
 
+      # AWS OIDC Authentication
       - name: Configure AWS Credentials using OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::085013191936:role/OIDC-role
           aws-region: us-east-1
-          role-session-name: GitHubActionsPlanSession
-      - name: Print OIDC sub claim
-        run: |
-          TOKEN=$(curl -sH "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-          "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | jq -r .value)
-          echo "$TOKEN" | cut -d. -f2 | tr '_-' '/+' \
-          | awk '{while(length($0)%4) $0=$0"="; print}' | base64 -d | jq -r .sub   
-
-      - name: Debug AWS env
-        run: env | grep -E '^AWS_' | sed 's/=.*//'
 
       - name: Verify AWS Authentication
         run: aws sts get-caller-identity
@@ -109,8 +102,6 @@ jobs:
 
       - name: Terraform Plan
         run: terraform plan -out=tfplan
-        env:
-          TF_LOG: DEBUG
 
       - name: Upload Plan Artifact
         uses: actions/upload-artifact@v4
@@ -119,10 +110,14 @@ jobs:
           path: tfplan
           retention-days: 1
 
+  # JOB 2: TERRAFORM APPLY
   apply:
     name: Terraform Apply
     runs-on: ubuntu-latest
+
     needs: plan
+
+    # Manual approval
     environment: production
 
     env:
@@ -134,15 +129,13 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: "1.16.5"
 
+      # AWS OIDC Authentication
       - name: Configure AWS Credentials using OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::085013191936:role/OIDC-role
           aws-region: us-east-1
-          role-session-name: GitHubActionsApplySession
 
       - name: Verify AWS Authentication
         run: aws sts get-caller-identity
@@ -154,11 +147,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: tfplan
-          path: .
+          path: tfplan
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
-
 
 
 
